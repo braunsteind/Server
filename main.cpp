@@ -5,7 +5,7 @@
 using namespace std;
 
 int main() {
-    Server server(8000);
+    Server server(7700);
     try {
         server.start();
     } catch (const char *msg) {
