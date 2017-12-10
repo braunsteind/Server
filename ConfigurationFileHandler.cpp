@@ -2,6 +2,7 @@
 #include "ConfigurationFileHandler.h"
 #include <iostream>
 #include <fstream>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -12,10 +13,10 @@ void ConfigurationFileHandler::readConfigurationFile() {
 
     //opening file
     ifstream inFile;
-    inFile.open ("../exe/Configuration");
+    inFile.open("../exe/Configuration");
 
     //reading the Port line.
-    getline(inFile,portLine);
+    getline(inFile, portLine);
     //done reading from file
     inFile.close();
 
