@@ -18,6 +18,14 @@ public:
 private:
     int port;
     int serverSocket; // the socket's file descriptor
+    /**
+     * Handle the player's moves.
+     * @param clientSocket The client socket.
+     * @param row The row that played. -1 to stop the game, -2 for no move.
+     * @param col The column that played. -1 to stop the game, -2 for no move.
+     * @param stop Function will change it to true if need to stop the game.
+     * @param firstTime First time running flag.
+     */
     void handlePlayer(int clientSocket, int &row, int &col, bool &stop, bool firstTime);
 
     /**

@@ -77,15 +77,20 @@ void Server::handlePlayer(int clientSocket, int &row, int &col, bool &stop, bool
     }
     // Read the player's move.
     n = read(clientSocket, &row, sizeof(row));
+    cout << "The row is: " << row + 1 << endl;
     if (n == -1) {
         cout << "Error reading the move" << endl;
         return;
     }
+    //if player disconnected.
     if (n == 0) {
         cout << "Player disconnected" << endl;
+        //stop the game.
+        stop = true;
         return;
     }
     n = read(clientSocket, &col, sizeof(col));
+    cout << "The column is: " << col + 1 << endl;
     if (n == -1) {
         cout << "Error reading the col" << endl;
         return;
