@@ -68,18 +68,22 @@ void Server::handlePlayer(int clientSocket, int &row, int &col, bool &stop, bool
         //send the other player the played move.
         n = write(clientSocket, &row, sizeof(row));
         if (n == -1) {
-            throw "Error writing row to socket";
+            cout << "Error writing row to socket" << endl;
+            stop = true;
+            return;
         }
         n = write(clientSocket, &col, sizeof(col));
         if (n == -1) {
-            throw "Error writing col to socket";
+            cout << "Error writing col to socket" << endl;
+            stop = true;
+            return;
         }
     }
     // Read the player's move.
     n = read(clientSocket, &row, sizeof(row));
-    cout << "The row is: " << row + 1 << endl;
     if (n == -1) {
-        cout << "Error reading the move" << endl;
+        cout << "Error reading row" << endl;
+        stop = true;
         return;
     }
     //if player disconnected.
@@ -90,13 +94,14 @@ void Server::handlePlayer(int clientSocket, int &row, int &col, bool &stop, bool
         return;
     }
     n = read(clientSocket, &col, sizeof(col));
-    cout << "The column is: " << col + 1 << endl;
     if (n == -1) {
-        cout << "Error reading the col" << endl;
+        cout << "Error reading col" << endl;
+        stop = true;
         return;
     }
     if (n == 0) {
         cout << "Player disconnected" << endl;
+        stop = true;
         return;
     }
     //if game ended.

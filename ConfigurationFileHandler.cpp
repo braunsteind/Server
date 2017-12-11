@@ -28,7 +28,7 @@ void ConfigurationFileHandler::readConfigurationFile() {
         }
     }
     //cutting the string to Port only
-    tempPort = portLine.substr(startIndex, portLine.size() - 1);
+    tempPort = portLine.substr(startIndex);
     this->port = atoi(tempPort.c_str());
 }
 
