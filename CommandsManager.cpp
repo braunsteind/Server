@@ -1,7 +1,11 @@
 #include "CommandsManager.h"
 
 CommandsManager::CommandsManager() {
-    //commandsmap["print"]=new PrintCommand();
+    commandsMap["start"] = new StartCommand();
+    commandsMap["list_games"] = new ListGamesCommand();
+    commandsMap["join"] = new JoinCommand();
+    commandsMap["play"] = new PlayCommand();
+    commandsMap["close"] = new CloseCommand();
 }
 
 CommandsManager::~CommandsManager() {
