@@ -2,6 +2,10 @@
 #define SERVER_STARTCOMMAND_H
 
 #include "Command.h"
+#include "GamesList.h"
+#include <cstdlib>
+#include <iostream>
+#include <unistd.h>
 
 class StartCommand : public Command {
 public:

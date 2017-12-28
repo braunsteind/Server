@@ -1,19 +1,19 @@
 #include "Server.h"
 
-using namespace std;
 #define MAX_CONNECTED_CLIENTS 10
+using namespace std;
 
 Server::Server(int port) : port(port), serverSocket(0) {
     cout << "Server" << endl;
 }
 
 void Server::start() {
-    // Create a socket point
+    //create a socket point
     serverSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSocket == -1) {
         throw "Error opening socket";
     }
-    // Assign a local address to the socket
+    //assign a local address to the socket
     struct sockaddr_in serverAddress;
     bzero((void *) &serverAddress, sizeof(serverAddress));
     serverAddress.sin_family = AF_INET;
@@ -22,101 +22,96 @@ void Server::start() {
     if (bind(serverSocket, (struct sockaddr *) &serverAddress, sizeof(serverAddress)) == -1) {
         throw "Error on binding";
     }
-    // Start listening to incoming connections
+    //start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
-    // Define the client socket's structures
-    struct sockaddr_in player1Address, player2Address;
-    socklen_t player1AddressLen, player2AddressLen;
-    while (true) {
-        cout << "Waiting for players connections..." << endl;
-        // Accept player1 connection
-        int player1Socket = accept(serverSocket, (struct sockaddr *) &player1Address, &player1AddressLen);
-        cout << "Player 1 is connected" << endl;
-        if (player1Socket == -1) {
-            throw "Error on accept";
-        }
-        // Accept player2 connection
-        int player2Socket = accept(serverSocket, (struct sockaddr *) &player2Address, &player2AddressLen);
-        cout << "Player 2 is connected" << endl;
-        if (player2Socket == -1) {
-            throw "Error on accept";
-        }
-        //send players there number.
-        announcePlayerNumber(player1Socket, '1');
-        announcePlayerNumber(player2Socket, '2');
-        int row, col;
-        bool firstTime = true, stop = false;
-        //play the game.
-        while (!stop) {
-            handlePlayer(player1Socket, row, col, stop, firstTime);
-            firstTime = false;
-            if (!stop) {
-                handlePlayer(player2Socket, row, col, stop, firstTime);
-            }
-        }
-        // Close communication with the players.
-        close(player1Socket);
-        close(player2Socket);
-    }
-}
-
-//Handle players.
-void Server::handlePlayer(int clientSocket, int &row, int &col, bool &stop, bool firstTime) {
-    int n;
-    //if not first time handling player.
-    if (!firstTime) {
-        //send the other player the played move.
-        n = write(clientSocket, &row, sizeof(row));
-        if (n == -1) {
-            cout << "Error writing row to socket" << endl;
-            stop = true;
-            return;
-        }
-        n = write(clientSocket, &col, sizeof(col));
-        if (n == -1) {
-            cout << "Error writing col to socket" << endl;
-            stop = true;
-            return;
-        }
-    }
-    // Read the player's move.
-    n = read(clientSocket, &row, sizeof(row));
-    if (n == -1) {
-        cout << "Error reading row" << endl;
-        stop = true;
-        return;
-    }
-    //if player disconnected.
-    if (n == 0) {
-        cout << "Player disconnected" << endl;
-        //stop the game.
-        stop = true;
-        return;
-    }
-    n = read(clientSocket, &col, sizeof(col));
-    if (n == -1) {
-        cout << "Error reading col" << endl;
-        stop = true;
-        return;
-    }
-    if (n == 0) {
-        cout << "Player disconnected" << endl;
-        stop = true;
-        return;
-    }
-    //if game ended.
-    if (row == -1 && col == -1) {
-        stop = true;
-    }
-}
-
-void Server::announcePlayerNumber(int clientSocket, char number) {
-    int n = write(clientSocket, &number, sizeof(number));
-    if (n == -1) {
-        throw "Error writing number to socket";
-    }
+    pthread_t pthread;
+    pthread_create(&pthread, NULL, startConnection, (void *) serverSocket);
+    pthread_exit(NULL);
 }
 
 void Server::stop() {
     close(serverSocket);
+}
+
+void *startConnection(void *serverSocketNumber) {
+    //int serverSocket = (int) serverSocketNumber;
+    int serverSocket = 5;
+    //create vector of threads.
+    vector<pthread_t> threads;
+    while (true) {
+        //define the client socket's structures
+        struct sockaddr_in clientAddress;
+        socklen_t clientAddressLen;
+        cout << "Waiting for clients connections..." << endl;
+        //accept client connection
+        int clientSocket = accept(serverSocket, (struct sockaddr *) &clientAddress, &clientAddressLen);
+        cout << "client is connected" << endl;
+        if (clientSocket == -1) {
+            throw "Error on accept";
+        }
+        //add new thread
+        threads.push_back(threads.size());
+        pthread_create(&threads[threads.size() - 1], NULL, handleClient, (void *) clientSocket);
+        //close communication with the client.
+        //close(clientSocket);
+    }
+    return NULL;
+}
+
+void *handleClient(void *clientSocketNumber) {
+    CommandsManager cm;
+    int n, spaceIndex, twoWordsCommand = 0, dataLength = 0;
+    int clientSocket = (int) clientSocketNumber;
+    char data[DATA_LENGTH];
+    while (true) {
+        n = read(clientSocket, &data, sizeof(data));
+        if (n == -1) {
+            cout << "Error reading command" << endl;
+            return NULL;
+        }
+        //if client disconnected.
+        if (n == 0) {
+            cout << "Client disconnected" << endl;
+            return NULL;
+        }
+        //loop on the data from client.
+        for (int i = 0; i < DATA_LENGTH; i++) {
+            //update the length
+            dataLength++;
+            //check if the command ended and if it's one or two words.
+            if (data[i] == '\0') {
+                break;
+            } else if (data[i] == ' ') {
+                spaceIndex = i;
+                twoWordsCommand = 1;
+            }
+        }
+        char command1[5];
+        vector<string> args;
+        //if one word command.
+        if (twoWordsCommand == 0) {
+            //create command.
+            char command[dataLength];
+            //copy the command.
+            for (int i = 0; i < dataLength; i++) {
+                command[i] = data[i];
+            }
+            cm.executeCommand(string(command), args);
+        } else { //if two words command.
+            char command[spaceIndex + 1];
+            char name[dataLength - (spaceIndex + 1)];
+            //copy the command.
+            for (int i = 0; i < spaceIndex; i++) {
+                command[i] = data[i];
+            }
+            command[spaceIndex] = '\0';
+            //copy the name.
+            for (int i = spaceIndex + 1; i < dataLength; i++) {
+                name[i] = data[i];
+            }
+            args.push_back(string(name));
+            cm.executeCommand(string(command), args);
+        }
+    }
+    return NULL;
 }

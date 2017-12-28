@@ -6,6 +6,10 @@
 #include <netinet/in.h>
 #include <strings.h>
 #include <unistd.h>
+#include <vector>
+#include "CommandsManager.h"
+
+#define DATA_LENGTH 50
 
 class Server {
 public:
@@ -18,22 +22,20 @@ public:
 private:
     int port;
     int serverSocket; // the socket's file descriptor
-    /**
-     * Handle the player's moves.
-     * @param clientSocket The client socket.
-     * @param row The row that played. -1 to stop the game, -2 for no move.
-     * @param col The column that played. -1 to stop the game, -2 for no move.
-     * @param stop Function will change it to true if need to stop the game.
-     * @param firstTime First time running flag.
-     */
-    void handlePlayer(int clientSocket, int &row, int &col, bool &stop, bool firstTime);
-
-    /**
-     * Announce the number to the players.
-     * @param clientSocket The client socket.
-     * @param number The number of the player.
-     */
-    void announcePlayerNumber(int clientSocket, char number);
 };
+
+/**
+ * Wait for client connection.
+ * @param serverSocketNumber The server's socket number.
+ * @return NULL.
+ */
+void *startConnection(void *serverSocketNumber);
+
+/**
+ * Handle the client.
+ * @param clientSocket The client's socket.
+ * @return NULL.
+ */
+void *handleClient(void *clientSocketNumber);
 
 #endif //UNTITLED1_SERVER_H
