@@ -11,13 +11,22 @@ using namespace std;
 
 class GamesList {
 public:
+    /**
+     * Get the instance
+     * @return The instance.
+     */
     static GamesList *getInstance();
+
+    /**
+     * Delete the instance.
+     */
+    static void ResetInstance();
 
     /**
      * Get the games list.
      * @return The games list.
      */
-    map<string, GameRoom> getList();
+    map<string, GameRoom *> getList();
 
     /**
      * Add game to list.
@@ -49,7 +58,7 @@ private:
      */
     ~GamesList() {};
     static GamesList *instance;
-    map<string, GameRoom> games;
+    map<string, GameRoom *> games;
 };
 
 #endif //SERVER_SINGLETON_H

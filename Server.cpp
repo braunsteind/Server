@@ -1,3 +1,4 @@
+#include <sstream>
 #include "Server.h"
 
 #define MAX_CONNECTED_CLIENTS 10
@@ -26,7 +27,8 @@ void Server::start() {
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
     pthread_t pthread;
     pthread_create(&pthread, NULL, startConnection, (void *) serverSocket);
-    pthread_exit(NULL);
+    void *status;
+    pthread_join(pthread, &status);
 }
 
 void Server::stop() {
@@ -34,8 +36,7 @@ void Server::stop() {
 }
 
 void *startConnection(void *serverSocketNumber) {
-    //int serverSocket = (int) serverSocketNumber;
-    int serverSocket = 5;
+    int serverSocket = *((int *) (&serverSocketNumber));
     //create vector of threads.
     vector<pthread_t> threads;
     while (true) {
@@ -61,8 +62,15 @@ void *startConnection(void *serverSocketNumber) {
 void *handleClient(void *clientSocketNumber) {
     CommandsManager cm;
     int n, spaceIndex, twoWordsCommand = 0, dataLength = 0;
-    int clientSocket = (int) clientSocketNumber;
+    int clientSocket = *((int *) (&clientSocketNumber));
     char data[DATA_LENGTH];
+    vector<string> args;
+    //convert client socket to string.
+    ostringstream os;
+    os << clientSocket;
+    const string stringClientSocket(os.str());
+    args.push_back(stringClientSocket);
+    //get client's commands.
     while (true) {
         n = read(clientSocket, &data, sizeof(data));
         if (n == -1) {
@@ -86,8 +94,6 @@ void *handleClient(void *clientSocketNumber) {
                 twoWordsCommand = 1;
             }
         }
-        char command1[5];
-        vector<string> args;
         //if one word command.
         if (twoWordsCommand == 0) {
             //create command.

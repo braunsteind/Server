@@ -6,10 +6,10 @@ void ListGamesCommand::execute(vector<string> args) {
     int clientSocket = atoi(args[0].c_str());
     char end[nameLength];
     //get the running games.
-    GamesList gamesList();
-    map<string, GameRoom> games = gamesList().getList();
+    GamesList *gamesList = GamesList::getInstance();
+    map<string, GameRoom *> games = gamesList->getList();
     //loop on games.
-    for (map<string, GameRoom>::iterator it = games.begin(); it != games.end(); it++) {
+    for (map<string, GameRoom *>::iterator it = games.begin(); it != games.end(); it++) {
         char roomName[nameLength];
         string current = it->first;
         //copy key.
@@ -26,7 +26,7 @@ void ListGamesCommand::execute(vector<string> args) {
             cout << "Error writing to socket" << endl;
         }
     }
-    //end of names (send empty room name.
+    //end of names (send empty room name).
     for (int i = 0; i < nameLength; i++) {
         end[i] = '\0';
     }

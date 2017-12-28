@@ -5,10 +5,10 @@ void StartCommand::execute(vector<string> args) {
     int n;
     int clientSocket = atoi(args[0].c_str());
     string gameName = args[1];
-    GamesList gamesList();
-    map<string, GameRoom> games = gamesList().getList();
+    GamesList *gamesList = GamesList::getInstance();
+    map<string, GameRoom *> games = gamesList->getList();
     //loop on games names.
-    for (map<string, GameRoom>::iterator it = games.begin(); it != games.end(); it++) {
+    for (map<string, GameRoom *>::iterator it = games.begin(); it != games.end(); it++) {
         string currentName = it->first;
         //if the name exist.
         if (currentName.compare(gameName) == 0) {
@@ -20,5 +20,5 @@ void StartCommand::execute(vector<string> args) {
         }
     }
     //create new room.
-    gamesList().addGame(gameName, clientSocket);
+    gamesList->addGame(gameName, clientSocket);
 }
