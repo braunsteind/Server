@@ -27,8 +27,7 @@ void Server::start() {
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
     pthread_t pthread;
     pthread_create(&pthread, NULL, startConnection, (void *) serverSocket);
-    void *status;
-    pthread_join(pthread, &status);
+    pthread_exit(NULL);
 }
 
 void Server::stop() {
@@ -72,6 +71,7 @@ void *handleClient(void *clientSocketNumber) {
     args.push_back(stringClientSocket);
     //get client's commands.
     while (true) {
+        cout << "reading data from socket: " << clientSocket << endl;
         n = read(clientSocket, &data, sizeof(data));
         if (n == -1) {
             cout << "Error reading command" << endl;
@@ -112,8 +112,8 @@ void *handleClient(void *clientSocketNumber) {
             }
             command[spaceIndex] = '\0';
             //copy the name.
-            for (int i = spaceIndex + 1; i < dataLength; i++) {
-                name[i] = data[i];
+            for (int i = 0; i < dataLength - (spaceIndex + 1); i++) {
+                name[i] = data[i + spaceIndex + 1];
             }
             args.push_back(string(name));
             cm.executeCommand(string(command), args);
