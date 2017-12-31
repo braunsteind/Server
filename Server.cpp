@@ -26,7 +26,16 @@ void Server::start() {
     //start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
     pthread_t pthread;
+    //vector<int> args;
+    //args.push_back(serverSocket);
     pthread_create(&pthread, NULL, startConnection, (void *) serverSocket);
+    string input;
+    //while not getting exit.
+    while (input.compare("exit") != 0) {
+        //get input.
+        cin >> input;
+    }
+    //close all clients.....
     pthread_exit(NULL);
 }
 
@@ -35,6 +44,7 @@ void Server::stop() {
 }
 
 void *startConnection(void *serverSocketNumber) {
+    //int serverSocket = (vector<int>) args[0];
     int serverSocket = *((int *) (&serverSocketNumber));
     //create vector of threads.
     vector<pthread_t> threads;
@@ -69,9 +79,9 @@ void *handleClient(void *clientSocketNumber) {
     os << clientSocket;
     const string stringClientSocket(os.str());
     args.push_back(stringClientSocket);
+    bool run = true;
     //get client's commands.
-    while (true) {
-        cout << "reading data from socket: " << clientSocket << endl;
+    while (run) {
         n = read(clientSocket, &data, sizeof(data));
         if (n == -1) {
             cout << "Error reading command" << endl;
@@ -115,6 +125,9 @@ void *handleClient(void *clientSocketNumber) {
             for (int i = 0; i < dataLength - (spaceIndex + 1); i++) {
                 name[i] = data[i + spaceIndex + 1];
             }
+            //stop the loop.
+            run = false;
+            //insert game room name to vector.
             args.push_back(string(name));
             cm.executeCommand(string(command), args);
         }

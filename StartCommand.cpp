@@ -4,7 +4,6 @@ void StartCommand::execute(vector<string> args) {
     int const nameInUse = -1;
     int n;
     int clientSocket = atoi(args[0].c_str());
-    cout << "starting game from socket: " << clientSocket << endl;
     string gameName = args[1];
     GamesList *gamesList = GamesList::getInstance();
     map<string, GameRoom *> games = gamesList->getList();

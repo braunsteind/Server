@@ -20,7 +20,6 @@ void ListGamesCommand::execute(vector<string> args) {
         for (int j = current.length(); j < nameLength; j++) {
             roomName[j] = '\0';
         }
-        cout << "sending: " << string(roomName) << endl;
         //write game name.
         n = write(clientSocket, &roomName, sizeof(roomName));
         if (n == -1) {

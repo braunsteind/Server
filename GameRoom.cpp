@@ -16,9 +16,6 @@ void GameRoom::startGame() {
     bool firstTime = true, stop = false;
     //play the game.
     while (!stop) {
-        cout << "player1:" << clientSocket1 << endl;
-        cout << "player2:" << clientSocket2 << endl;
-        cout << "handling player1" << endl;
         handlePlayer(clientSocket1, row, col, stop, firstTime);
         firstTime = false;
         if (!stop) {
@@ -61,7 +58,6 @@ void GameRoom::handlePlayer(int clientSocket, int &row, int &col, bool &stop, bo
             return;
         }
     }
-    cout << "reading from " << clientSocket << endl;
     //read the player's move.
     n = read(clientSocket, &row, sizeof(row));
     if (n == -1) {
@@ -76,7 +72,6 @@ void GameRoom::handlePlayer(int clientSocket, int &row, int &col, bool &stop, bo
         stop = true;
         return;
     }
-    cout << "row:" << row << endl;
     n = read(clientSocket, &col, sizeof(col));
     if (n == -1) {
         cout << "Error reading col" << endl;
