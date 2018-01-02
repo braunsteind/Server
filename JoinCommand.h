@@ -8,8 +8,7 @@
 
 class JoinCommand : public Command {
 public:
-    virtual void execute(vector<string> args);
-
+    virtual void execute(vector<string> args, int clientSocket, pthread_t threadId);
 };
 
 #endif //SERVER_JOINCOMMAND_H

@@ -17,8 +17,9 @@ public:
     /**
      * Add second client to room.
      * @param clientSocket The client socket.
+     * @param threadId The thread id.
      */
-    void addSecondClient(int clientSocket);
+    void addSecondClient(int clientSocket, pthread_t threadId);
 
     /**
      * Get client 1 socket number.
@@ -37,9 +38,23 @@ public:
      */
     void startGame();
 
+    /**
+     * End the game.
+     */
+    void endGame();
+
+    /**
+     * Check if can the room is full.
+     * @return True if the room is full, false otherwise.
+     */
+    bool isFull();
+
 private:
+    pthread_t threadId;
     int clientSocket1;
     int clientSocket2;
+    pthread_mutex_t lock;
+    bool canJoin;
 
     /**
     * Announce the number to the players.

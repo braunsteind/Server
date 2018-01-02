@@ -9,7 +9,7 @@
 
 class StartCommand : public Command {
 public:
-    virtual void execute(vector<string> args);
+    virtual void execute(vector<string> args, int clientSocket, pthread_t threaId);
 };
 
 #endif //SERVER_STARTCOMMAND_H

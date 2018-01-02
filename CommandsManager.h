@@ -1,11 +1,9 @@
 #ifndef SERVER_COMMANDSMANAGER_H
 #define SERVER_COMMANDSMANAGER_H
 
-#include "CloseCommand.h"
 #include "StartCommand.h"
 #include "ListGamesCommand.h"
 #include "JoinCommand.h"
-#include "PlayCommand.h"
 #include <map>
 #include "Command.h"
 
@@ -15,7 +13,7 @@ public:
 
     ~CommandsManager();
 
-    void executeCommand(string command, vector<string> args);
+    void executeCommand(string command, vector<string> args, int clientSocket, pthread_t threadId);
 
 private:
     map<string, Command *> commandsMap;

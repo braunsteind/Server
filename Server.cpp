@@ -4,7 +4,12 @@
 #define MAX_CONNECTED_CLIENTS 10
 using namespace std;
 
-Server::Server(int port) : port(port), serverSocket(0) {
+struct ThreadArgs {
+    pthread_t *threadId;
+    int clientSocket;
+};
+
+Server::Server(int port) : port(port), serverSocket(0), serverThreadId(0) {
     cout << "Server" << endl;
 }
 
@@ -25,29 +30,32 @@ void Server::start() {
     }
     //start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
-    pthread_t pthread;
-    //vector<int> args;
-    //args.push_back(serverSocket);
-    pthread_create(&pthread, NULL, startConnection, (void *) serverSocket);
+    pthread_t serverThreadId;
+    pthread_create(&serverThreadId, NULL, startConnection, (void *) serverSocket);
     string input;
     //while not getting exit.
     while (input.compare("exit") != 0) {
         //get input.
         cin >> input;
     }
-    //close all clients.....
-    pthread_exit(NULL);
+    stop();
 }
 
 void Server::stop() {
+    GamesList *gamesList = GamesList::getInstance();
+    map<string, GameRoom *> games = gamesList->getList();
+    //loop on running games.
+    for (map<string, GameRoom *>::iterator it = games.begin(); it != games.end(); it++) {
+        //end all games.
+        it->second->endGame();
+    }
+    pthread_cancel(serverThreadId);
     close(serverSocket);
 }
 
 void *startConnection(void *serverSocketNumber) {
-    //int serverSocket = (vector<int>) args[0];
     int serverSocket = *((int *) (&serverSocketNumber));
     //create vector of threads.
-    vector<pthread_t> threads;
     while (true) {
         //define the client socket's structures
         struct sockaddr_in clientAddress;
@@ -60,77 +68,47 @@ void *startConnection(void *serverSocketNumber) {
             throw "Error on accept";
         }
         //add new thread
-        threads.push_back(threads.size());
-        pthread_create(&threads[threads.size() - 1], NULL, handleClient, (void *) clientSocket);
-        //close communication with the client.
-        //close(clientSocket);
+        pthread_t thread;
+        ThreadArgs args;
+        args.threadId = &thread;
+        args.clientSocket = clientSocket;
+        pthread_create(&thread, NULL, handleClient, (void *) &args);
     }
     return NULL;
 }
 
-void *handleClient(void *clientSocketNumber) {
+void *handleClient(void *tArgs) {
     CommandsManager cm;
-    int n, spaceIndex, twoWordsCommand = 0, dataLength = 0;
-    int clientSocket = *((int *) (&clientSocketNumber));
-    char data[DATA_LENGTH];
-    vector<string> args;
-    //convert client socket to string.
-    ostringstream os;
-    os << clientSocket;
-    const string stringClientSocket(os.str());
-    args.push_back(stringClientSocket);
-    bool run = true;
+    //the the thread args.
+    struct ThreadArgs *threadArgsArgs = (struct ThreadArgs *) tArgs;
+    pthread_t pthread = *(threadArgsArgs->threadId);
+    int clientSocket = threadArgsArgs->clientSocket;
+
     //get client's commands.
-    while (run) {
-        n = read(clientSocket, &data, sizeof(data));
-        if (n == -1) {
-            cout << "Error reading command" << endl;
-            return NULL;
-        }
-        //if client disconnected.
-        if (n == 0) {
-            cout << "Client disconnected" << endl;
-            return NULL;
-        }
-        //loop on the data from client.
-        for (int i = 0; i < DATA_LENGTH; i++) {
-            //update the length
-            dataLength++;
-            //check if the command ended and if it's one or two words.
-            if (data[i] == '\0') {
-                break;
-            } else if (data[i] == ' ') {
-                spaceIndex = i;
-                twoWordsCommand = 1;
-            }
-        }
-        //if one word command.
-        if (twoWordsCommand == 0) {
-            //create command.
-            char command[dataLength];
-            //copy the command.
-            for (int i = 0; i < dataLength; i++) {
-                command[i] = data[i];
-            }
-            cm.executeCommand(string(command), args);
-        } else { //if two words command.
-            char command[spaceIndex + 1];
-            char name[dataLength - (spaceIndex + 1)];
-            //copy the command.
-            for (int i = 0; i < spaceIndex; i++) {
-                command[i] = data[i];
-            }
-            command[spaceIndex] = '\0';
-            //copy the name.
-            for (int i = 0; i < dataLength - (spaceIndex + 1); i++) {
-                name[i] = data[i + spaceIndex + 1];
-            }
-            //stop the loop.
-            run = false;
-            //insert game room name to vector.
-            args.push_back(string(name));
-            cm.executeCommand(string(command), args);
-        }
+    char data[DATA_LENGTH];
+    int n = read(clientSocket, &data, sizeof(data));
+    if (n == -1) {
+        cout << "Error reading command" << endl;
+        return NULL;
     }
+    //if client disconnected.
+    if (n == 0) {
+        cout << "Client disconnected" << endl;
+        return NULL;
+    }
+
+    //split the data.
+    string str(data);
+    istringstream iss(str);
+    string command;
+    iss >> command;
+    vector<string> args;
+    while (iss) {
+        string arg;
+        iss >> arg;
+        args.push_back(arg);
+    }
+    //execute command.
+    cm.executeCommand(string(command), args, clientSocket, pthread);
     return NULL;
 }

@@ -1,31 +1,43 @@
 #include "JoinCommand.h"
 
-void JoinCommand::execute(vector<string> args) {
-    int const nameNotInUse = -1;
-    int clientSocket = atoi(args[0].c_str());
-    string gameName = args[1];
+void JoinCommand::execute(vector<string> args, int cSocket, pthread_t threadId) {
+    int const nameNotInUse = -1, nameIsOk = 1;
+    int clientSocket = cSocket;
+    string gameName = args[0];
     GamesList *gamesList = GamesList::getInstance();
     map<string, GameRoom *> games = gamesList->getList();
-    int roomExist = 0;
+    bool roomExist = false;
     //loop on games names.
     for (map<string, GameRoom *>::iterator it = games.begin(); it != games.end(); it++) {
         string currentName = it->first;
         //if the name exist.
         if (currentName.compare(gameName) == 0) {
-            roomExist = 1;
+            roomExist = true;
             break;
         }
     }
     //if room doesn't exist.
-    if (roomExist == 0) {
+    if (roomExist == false) {
         int n = write(clientSocket, &nameNotInUse, sizeof(nameNotInUse));
         if (n == -1) {
             cout << "Error writing to socket" << endl;
         }
-        return;
+        //close socket and finish thread.
+        close(clientSocket);
+        pthread_exit(NULL);
     }
-    //add second client and start the game.
+    //if name is ok.
+    int n = write(clientSocket, &nameIsOk, sizeof(nameIsOk));
+    if (n == -1) {
+        cout << "Error writing to socket" << endl;
+    }
+
+    //add second client.
     GameRoom *gameRoom = games[gameName];
-    gameRoom->addSecondClient(clientSocket);
+    gameRoom->addSecondClient(clientSocket, threadId);
+    //start the game.
     gameRoom->startGame();
+    //remove the game from the list.
+    gamesList->removeGame(gameName);
+    pthread_exit(NULL);
 }

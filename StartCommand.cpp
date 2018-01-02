@@ -1,12 +1,12 @@
 #include "StartCommand.h"
 
-void StartCommand::execute(vector<string> args) {
-    int const nameInUse = -1;
+void StartCommand::execute(vector<string> args, int clientSocket, pthread_t threadId) {
+    int const nameInUse = -1, nameIsOk = 1;
     int n;
-    int clientSocket = atoi(args[0].c_str());
-    string gameName = args[1];
+    string gameName = args[0];
     GamesList *gamesList = GamesList::getInstance();
     map<string, GameRoom *> games = gamesList->getList();
+
     //loop on games names.
     for (map<string, GameRoom *>::iterator it = games.begin(); it != games.end(); it++) {
         string currentName = it->first;
@@ -16,9 +16,18 @@ void StartCommand::execute(vector<string> args) {
             if (n == -1) {
                 cout << "Error writing to socket" << endl;
             }
-            return;
+            //close socket and finish thread.
+            close(clientSocket);
+            pthread_exit(NULL);
         }
     }
-    //create new room.
+    //
+    n = write(clientSocket, &nameIsOk, sizeof(nameIsOk));
+    if (n == -1) {
+        cout << "Error writing to socket" << endl;
+    }
+
+    //create new room and exit thread.
     gamesList->addGame(gameName, clientSocket);
+    pthread_exit(NULL);
 }

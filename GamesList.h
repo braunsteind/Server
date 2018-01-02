@@ -2,6 +2,7 @@
 #define SERVER_SINGLETON_H
 #pragma once
 
+#include <pthread.h>
 #include <string>
 #include <map>
 #include "GameRoom.h"
@@ -42,6 +43,12 @@ public:
     void removeGame(string gameName);
 
 private:
+    static GamesList *instance;
+    static pthread_mutex_t lock;
+    static pthread_mutex_t lock2;
+    static pthread_mutex_t lock3;
+    map<string, GameRoom *> games;
+
     /**
      * Constructor.
      */
@@ -57,8 +64,6 @@ private:
      * Destructor.
      */
     ~GamesList() {};
-    static GamesList *instance;
-    map<string, GameRoom *> games;
 };
 
 #endif //SERVER_SINGLETON_H

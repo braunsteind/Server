@@ -4,8 +4,6 @@ CommandsManager::CommandsManager() {
     commandsMap["start"] = new StartCommand();
     commandsMap["list_games"] = new ListGamesCommand();
     commandsMap["join"] = new JoinCommand();
-    commandsMap["play"] = new PlayCommand();
-    commandsMap["close"] = new CloseCommand();
 }
 
 CommandsManager::~CommandsManager() {
@@ -15,7 +13,8 @@ CommandsManager::~CommandsManager() {
     }
 }
 
-void CommandsManager::executeCommand(string command, vector<string> args) {
+void
+CommandsManager::executeCommand(string command, vector<string> args, int clientSocket, pthread_t threadId) {
     Command *commandObj = commandsMap[command];
-    commandObj->execute(args);
+    commandObj->execute(args, clientSocket, threadId);
 }
