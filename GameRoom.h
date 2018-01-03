@@ -43,18 +43,11 @@ public:
      */
     void endGame();
 
-    /**
-     * Check if can the room is full.
-     * @return True if the room is full, false otherwise.
-     */
-    bool isFull();
-
 private:
     pthread_t threadId;
     int clientSocket1;
     int clientSocket2;
     pthread_mutex_t lock;
-    bool canJoin;
 
     /**
     * Announce the number to the players.

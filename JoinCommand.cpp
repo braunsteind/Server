@@ -35,9 +35,11 @@ void JoinCommand::execute(vector<string> args, int cSocket, pthread_t threadId) 
     //add second client.
     GameRoom *gameRoom = games[gameName];
     gameRoom->addSecondClient(clientSocket, threadId);
+    //remove the game from the list.
+    gamesList->addRunningGame(gameRoom);
+    gamesList->removeGame(gameName);
     //start the game.
     gameRoom->startGame();
-    //remove the game from the list.
-    gamesList->removeGame(gameName);
+    gamesList->removeRunningGameRoom(gameRoom);
     pthread_exit(NULL);
 }

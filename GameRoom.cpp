@@ -1,11 +1,10 @@
 #include "GameRoom.h"
 
-GameRoom::GameRoom(int clientSocket) : clientSocket1(clientSocket), canJoin(true) {}
+GameRoom::GameRoom(int clientSocket) : clientSocket1(clientSocket) {}
 
 void GameRoom::addSecondClient(int clientSocket, pthread_t threadId) {
     this->clientSocket2 = clientSocket;
     this->threadId = threadId;
-    this->canJoin = false;
 }
 
 void GameRoom::startGame() {
@@ -32,11 +31,6 @@ int GameRoom::getClient1Socket() {
 
 int GameRoom::getClient2Socket() {
     return clientSocket2;
-}
-
-bool GameRoom::isFull() {
-    //if can join = true return false, else true.
-    return (!canJoin);
 }
 
 void GameRoom::announcePlayerNumber(int clientSocket, char number) {

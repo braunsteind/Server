@@ -5,6 +5,7 @@
 #include <pthread.h>
 #include <string>
 #include <map>
+#include <vector>
 #include "GameRoom.h"
 
 
@@ -42,12 +43,33 @@ public:
      */
     void removeGame(string gameName);
 
+    /**
+     * Get the running games.
+     * @return The running games.
+     */
+    vector<GameRoom *> getRunningGames();
+
+    /**
+     * Add running game to game room.
+     * @param gameRoom The running game room.
+     */
+    void addRunningGame(GameRoom *gameRoom);
+
+    /**
+     * Close the game room.
+     * @param gameRoom The game room to close.
+     */
+    void removeRunningGameRoom(GameRoom *gameRoom);
+
 private:
     static GamesList *instance;
     static pthread_mutex_t lock;
     static pthread_mutex_t lock2;
     static pthread_mutex_t lock3;
+    static pthread_mutex_t addRunningGameLock;
+    static pthread_mutex_t removeRunningGameLock;
     map<string, GameRoom *> games;
+    vector<GameRoom *> runningGames;
 
     /**
      * Constructor.
