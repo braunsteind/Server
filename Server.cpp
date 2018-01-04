@@ -44,11 +44,19 @@ void Server::start() {
 void Server::stop() {
     GamesList *gamesList = GamesList::getInstance();
     vector<GameRoom *> runningGames = gamesList->getRunningGames();
+    map<string, GameRoom *> openedGames = gamesList->getList();
+
     //loop on running games.
     for (int i = 0; i < runningGames.size(); i++) {
         //end game.
         runningGames[i]->endGame();
     }
+    //loop on the opened games.
+    for (map<string, GameRoom *>::iterator it = openedGames.begin(); it != openedGames.end(); it++) {
+        it->second->endGame();
+    }
+
+    //close the thread the server.
     pthread_cancel(serverThreadId);
     close(serverSocket);
 }

@@ -13,8 +13,12 @@ CommandsManager::~CommandsManager() {
     }
 }
 
-void
-CommandsManager::executeCommand(string command, vector<string> args, int clientSocket, pthread_t threadId) {
+void CommandsManager::executeCommand(string command, vector<string> args, int clientSocket, pthread_t threadId) {
+    //if command not exist.
+    if (commandsMap.find(command) == commandsMap.end()) {
+        return;
+    }
+    //command exist.
     Command *commandObj = commandsMap[command];
     commandObj->execute(args, clientSocket, threadId);
 }

@@ -1,6 +1,6 @@
 #include "GameRoom.h"
 
-GameRoom::GameRoom(int clientSocket) : clientSocket1(clientSocket) {}
+GameRoom::GameRoom(int clientSocket) : clientSocket1(clientSocket), clientSocket2(0) {}
 
 void GameRoom::addSecondClient(int clientSocket, pthread_t threadId) {
     this->clientSocket2 = clientSocket;
@@ -107,16 +107,23 @@ void GameRoom::endGame() {
     pthread_mutex_lock(&lock);
     const int endServer = -3;
     int n;
+
+    //close client1.
     n = write(clientSocket1, &endServer, sizeof(endServer));
     if (n == -1) {
         cout << "Error writing end of server to socket" << endl;
     }
-    n = write(clientSocket2, &endServer, sizeof(endServer));
-    if (n == -1) {
-        cout << "Error writing end of server to socket" << endl;
-    }
     close(clientSocket1);
-    close(clientSocket2);
+
+    //if there is client2, close him.
+    if (clientSocket2 != 0) {
+        n = write(clientSocket2, &endServer, sizeof(endServer));
+        if (n == -1) {
+            cout << "Error writing end of server to socket" << endl;
+        }
+        close(clientSocket2);
+    }
+
     pthread_cancel(threadId);
     pthread_mutex_unlock(&lock);
 }
