@@ -1,7 +1,9 @@
 #include <sstream>
 #include "Server.h"
+#include "ThreadPool.h"
 
 #define MAX_CONNECTED_CLIENTS 10
+#define THREADS_NUM 5
 using namespace std;
 
 struct ThreadArgs {
@@ -62,6 +64,8 @@ void Server::stop() {
 }
 
 void *startConnection(void *serverSocketNumber) {
+    //create thread pool!!! whooo owohooooo whoooooooo WHOOOOO WHOOOOOO WHOOOOOO.
+    ThreadPool threadPool(THREADS_NUM);
     int serverSocket = *((int *) (&serverSocketNumber));
     //create vector of threads.
     while (true) {
