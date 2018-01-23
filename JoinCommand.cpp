@@ -41,5 +41,5 @@ void JoinCommand::execute(vector<string> args, int cSocket, pthread_t threadId) 
     //start the game.
     gameRoom->startGame();
     gamesList->removeRunningGameRoom(gameRoom);
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
 }

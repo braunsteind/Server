@@ -3,7 +3,6 @@
 #include "ThreadPool.h"
 
 #define MAX_CONNECTED_CLIENTS 10
-#define THREADS_NUM 5
 using namespace std;
 
 struct ThreadArgs {
@@ -11,8 +10,15 @@ struct ThreadArgs {
     int clientSocket;
 };
 
-Server::Server(int port) : port(port), serverSocket(0), serverThreadId(0) {
+struct StartArgs {
+    int serverSocket;
+    ThreadPool *threadPool;
+};
+
+Server::Server(int port, int threadsNum) : port(port), serverSocket(0), serverThreadId(0) {
     cout << "Server" << endl;
+    //create thread pool.
+    threadPool = new ThreadPool(threadsNum);
 }
 
 void Server::start() {
@@ -33,9 +39,13 @@ void Server::start() {
     //start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
     pthread_t serverThreadId;
-    pthread_create(&serverThreadId, NULL, startConnection, (void *) serverSocket);
-    string input;
+    StartArgs startArgs;
+    startArgs.serverSocket = serverSocket;
+    startArgs.threadPool = threadPool;
+    pthread_create(&serverThreadId, NULL, startConnection, (void *) &startArgs);
+
     //while not getting exit.
+    string input;
     while (input.compare("exit") != 0) {
         //get input.
         cin >> input;
@@ -58,15 +68,20 @@ void Server::stop() {
         it->second->endGame();
     }
 
+    //terminate thread pool.
+    threadPool->terminate();
+
     //close the thread the server.
     pthread_cancel(serverThreadId);
     close(serverSocket);
 }
 
-void *startConnection(void *serverSocketNumber) {
-    //create thread pool!!! whooo owohooooo whoooooooo WHOOOOO WHOOOOOO WHOOOOOO.
-    ThreadPool threadPool(THREADS_NUM);
-    int serverSocket = *((int *) (&serverSocketNumber));
+void *startConnection(void *sArgs) {
+    //get args.
+    struct StartArgs *startArgs = (struct StartArgs *) sArgs;
+    int serverSocket = startArgs->serverSocket;
+    ThreadPool *threadPool = startArgs->threadPool;
+
     //create vector of threads.
     while (true) {
         //define the client socket's structures
@@ -79,19 +94,20 @@ void *startConnection(void *serverSocketNumber) {
         if (clientSocket == -1) {
             throw "Error on accept";
         }
-        //add new thread
+        //add new thread.
         pthread_t thread;
         ThreadArgs args;
         args.threadId = &thread;
         args.clientSocket = clientSocket;
-        pthread_create(&thread, NULL, handleClient, (void *) &args);
+        //pthread_create(&thread, NULL, handleClient, (void *) &args);
+        threadPool->addTask(new Task(handleClient, (void *) &args));
     }
     return NULL;
 }
 
 void *handleClient(void *tArgs) {
     CommandsManager cm;
-    //the the thread args.
+    //the thread args.
     struct ThreadArgs *threadArgsArgs = (struct ThreadArgs *) tArgs;
     pthread_t pthread = *(threadArgsArgs->threadId);
     int clientSocket = threadArgsArgs->clientSocket;
@@ -115,11 +131,13 @@ void *handleClient(void *tArgs) {
     string command;
     iss >> command;
     vector<string> args;
+    //add data to args vector.
     while (iss) {
         string arg;
         iss >> arg;
         args.push_back(arg);
     }
+
     //execute command.
     cm.executeCommand(string(command), args, clientSocket, pthread);
     return NULL;

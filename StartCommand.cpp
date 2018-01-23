@@ -29,5 +29,5 @@ void StartCommand::execute(vector<string> args, int clientSocket, pthread_t thre
 
     //create new room and exit thread.
     gamesList->addGame(gameName, clientSocket);
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
 }

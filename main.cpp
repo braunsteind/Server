@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdlib.h>
 
+#define THREADS_NUM 5
+
 using namespace std;
 
 int main() {
@@ -11,7 +13,7 @@ int main() {
     handler.readConfigurationFile();
     int port = handler.getPortFromFile();
     //running the server
-    Server server(port);
+    Server server(port, THREADS_NUM);
     try {
         server.start();
     } catch (const char *msg) {

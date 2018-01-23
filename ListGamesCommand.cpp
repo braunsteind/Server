@@ -36,5 +36,5 @@ void ListGamesCommand::execute(vector<string> args, int cSocket, pthread_t threa
     }
     //close the socket.
     close(clientSocket);
-    pthread_exit(NULL);
+    //pthread_exit(NULL);
 }
