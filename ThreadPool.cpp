@@ -5,7 +5,7 @@
  * Constructor.
  * @param threadsNum The number of threads.
  */
-ThreadPool::ThreadPool(int threadsNum) : stopped(false) {
+ThreadPool::ThreadPool(int threadsNum) : threadsNum(threadsNum), stopped(false) {
     //create array of threads.
     threads = new pthread_t[threadsNum];
     //loop of the threads.
@@ -19,6 +19,10 @@ ThreadPool::ThreadPool(int threadsNum) : stopped(false) {
 void *ThreadPool::execute(void *arg) {
     ThreadPool *pool = (ThreadPool *) arg;
     pool->executeTasks();
+}
+
+int ThreadPool::getThreadsNum() {
+    return threadsNum;
 }
 
 void ThreadPool::addTask(Task *task) {

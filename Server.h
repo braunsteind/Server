@@ -21,6 +21,7 @@ public:
     void stop();
 
 private:
+    vector<Task *> tasks;
     ThreadPool *threadPool;
     int port;
     int serverSocket; // the socket's file descriptor

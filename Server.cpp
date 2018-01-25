@@ -13,6 +13,7 @@ struct ThreadArgs {
 struct StartArgs {
     int serverSocket;
     ThreadPool *threadPool;
+    vector<Task *> tasks;
 };
 
 Server::Server(int port, int threadsNum) : port(port), serverSocket(0), serverThreadId(0) {
@@ -39,9 +40,12 @@ void Server::start() {
     //start listening to incoming connections
     listen(serverSocket, MAX_CONNECTED_CLIENTS);
     pthread_t serverThreadId;
+
+    //startArgs
     StartArgs startArgs;
     startArgs.serverSocket = serverSocket;
     startArgs.threadPool = threadPool;
+    startArgs.tasks = tasks;
     pthread_create(&serverThreadId, NULL, startConnection, (void *) &startArgs);
 
     //while not getting exit.
@@ -71,16 +75,22 @@ void Server::stop() {
     //terminate thread pool.
     threadPool->terminate();
 
+    //free all tasks.
+    for (int i = 0; i < tasks.size(); i++) {
+        delete tasks[i];
+    }
+
     //close the thread the server.
     pthread_cancel(serverThreadId);
     close(serverSocket);
 }
 
 void *startConnection(void *sArgs) {
-    //get args.
+    //get startArgs.
     struct StartArgs *startArgs = (struct StartArgs *) sArgs;
     int serverSocket = startArgs->serverSocket;
     ThreadPool *threadPool = startArgs->threadPool;
+    vector<Task *> tasks = startArgs->tasks;
 
     //create vector of threads.
     while (true) {
@@ -94,13 +104,15 @@ void *startConnection(void *sArgs) {
         if (clientSocket == -1) {
             throw "Error on accept";
         }
-        //add new thread.
         pthread_t thread;
         ThreadArgs args;
         args.threadId = &thread;
         args.clientSocket = clientSocket;
-        //pthread_create(&thread, NULL, handleClient, (void *) &args);
-        threadPool->addTask(new Task(handleClient, (void *) &args));
+
+        //create new Task.
+        Task *task = new Task(handleClient, (void *) &args);
+        tasks.push_back(task);
+        threadPool->addTask(task);
     }
     return NULL;
 }

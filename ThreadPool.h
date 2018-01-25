@@ -16,11 +16,14 @@ public:
 
     void terminate();
 
+    int getThreadsNum();
+
     virtual ~ThreadPool();
 
 private:
     queue<Task *> tasksQueue;
     pthread_t *threads;
+    int threadsNum;
 
     void executeTasks();
 
